@@ -1,12 +1,13 @@
-const http = require('http');
-const prom = require('prom-client');
-const pm2 = require('pm2');
-const logger = require('pino')();
+const http = require('http')
+const prom = require('prom-client')
+const pm2 = require('pm2')
+const logger = require('pino')()
+const os = require('os')
 
-const io = require('pmx');
+const io = require('pmx')
 
-const prefix = 'pm2';
-const labels = ['id', 'name', 'instance', 'interpreter', 'node_version'];
+const prefix = 'pm2'
+const labels = ['id', 'name', 'instance', 'interpreter', 'node_version']
 const map = [
   ['up', 'Is the process running'],
   ['cpu', 'Process cpu usage'],
@@ -14,39 +15,39 @@ const map = [
   ['uptime', 'Process uptime'],
   ['instances', 'Process instances'],
   ['restarts', 'Process restarts'],
-  ['prev_restart_delay', 'Previous restart delay'],
-];
+  ['prev_restart_delay', 'Previous restart delay']
+]
 
 const pm2c = (cmd, args = []) =>
   new Promise((resolve, reject) => {
     pm2[cmd](args, (err, resp) => {
-      if (err) return reject(err);
-      return resolve(resp);
-    });
-  });
+      if (err) return reject(err)
+      return resolve(resp)
+    })
+  })
 
 const metrics = () => {
-  const pm = {};
-  const registry = new prom.Registry();
+  const pm = {}
+  const registry = new prom.Registry()
   map.forEach(m => {
     pm[m[0]] = new prom.Gauge({
       name: `${prefix}_${m[0]}`,
       help: m[1],
       labelNames: labels,
-      registers: [registry],
-    });
-  });
+      registers: [registry]
+    })
+  })
   return pm2c('list')
     .then(list => {
       list.forEach(p => {
-        logger.debug(p, p.exec_interpreter, '>>>>>>');
+        logger.debug(p, p.exec_interpreter, '>>>>>>')
         const conf = {
           id: p.pm_id,
           name: p.name,
           instance: p.pm2_env.NODE_APP_INSTANCE,
           interpreter: p.pm2_env.exec_interpreter,
-          node_version: p.pm2_env.node_version,
-        };
+          node_version: p.pm2_env.node_version
+        }
 
         const values = {
           up: p.pm2_env.status === 'online' ? 1 : 0,
@@ -55,85 +56,112 @@ const metrics = () => {
           uptime: Math.round((Date.now() - p.pm2_env.pm_uptime) / 1000),
           instances: p.pm2_env.instances || 1,
           restarts: p.pm2_env.restart_time,
-          prev_restart_delay: p.pm2_env.prev_restart_delay,
-        };
+          prev_restart_delay: p.pm2_env.prev_restart_delay
+        }
 
-        const names = Object.keys(p.pm2_env.axm_monitor);
+        const names = Object.keys(p.pm2_env.axm_monitor)
 
         // eslint-disable-next-line no-restricted-syntax
         for (const name of names) {
+          // console.log(name)
           try {
-            let value;
+            let value
             if (name === 'Loop delay') {
-              value = Number.parseFloat(p.pm2_env.axm_monitor[name].value.match(/^[\d.]+/)[0]);
+              value = Number.parseFloat(
+                p.pm2_env.axm_monitor[name].value.match(/^[\d.]+/)[0]
+              )
             } else if (name.match(/Event Loop Latency|Heap Size/)) {
-              value = Number.parseFloat(p.pm2_env.axm_monitor[name].value.toString().split('m')[0]);
+              value = Number.parseFloat(
+                p.pm2_env.axm_monitor[name].value.toString().split('m')[0]
+              )
             } else {
-              value = Number.parseFloat(p.pm2_env.axm_monitor[name].value);
+              value = Number.parseFloat(p.pm2_env.axm_monitor[name].value)
             }
 
             if (Number.isNaN(value)) {
-              logger.warn('Ignoring metric name "%s" as value "%s" is not a number', name, value);
+              logger.warn(
+                'Ignoring metric name "%s" as value "%s" is not a number',
+                name,
+                value
+              )
               // eslint-disable-next-line no-continue
-              continue;
+              continue
             }
 
-            const metricName = `${prefix}_${name.replace(/[^a-z\d]+/gi, '_').toLowerCase()}`;
+            const metricName = `${prefix}_${name
+              .replace(/[^a-z\d]+/gi, '_')
+              .toLowerCase()}`
 
             if (!pm[metricName]) {
               pm[metricName] = new prom.Gauge({
                 name: metricName,
                 help: name,
                 labelNames: labels,
-                registers: [registry],
-              });
+                registers: [registry]
+              })
             }
 
-            values[metricName] = value;
+            values[metricName] = value
           } catch (error) {
-            logger.error(error);
+            logger.error(error)
           }
         }
 
+        // OS CPU
+        const metricName = 'os_cpu'
+        if (!pm[metricName]) {
+          pm[metricName] = new prom.Gauge({
+            name: metricName,
+            help: 'OS cpu',
+            labelNames: labels,
+            registers: [registry]
+          })
+        }
+        values[metricName] = Math.round(os.loadavg()[0] * 100) / 100
+
         // eslint-disable-next-line consistent-return
         Object.keys(values).forEach(k => {
-          if (values[k] === null) return null;
+          if (values[k] === null) return null
 
           // Prometheus client Gauge will throw an error if we don't return a number
           // so we will skip this metrics value
           if (values[k] === undefined) {
-            return null;
+            return null
           }
 
-          pm[k].set(conf, values[k]);
-        });
-      });
-      return registry.metrics();
+          pm[k].set(conf, values[k])
+        })
+      })
+
+      return registry.metrics()
     })
     .catch(err => {
-      logger.error(err);
-    });
-};
+      logger.error(err)
+    })
+}
 
 const exporter = () => {
   const server = http.createServer((request, res) => {
     switch (request.url) {
       case '/':
-        return res.end('<html>PM2 metrics: <a href="/metrics">/metrics</a></html>');
+        return res.end(
+          '<html>PM2 metrics: <a href="/metrics">/metrics</a></html>'
+        )
       case '/metrics':
-        return metrics().then(data => res.end(data));
+        return metrics().then(data => res.end(data))
       default:
-        return res.end('404');
+        return res.end('404')
     }
-  });
+  })
 
   return io.initModule({}, (err, conf) => {
-    const port = conf.port || 9209;
-    const host = conf.host || '0.0.0.0';
+    if (err) console.error(err)
+    const port = conf.port || 9209
+    const host = conf.host || '0.0.0.0'
 
-    server.listen(port, host);
-    logger.info('metrics-exporter listening at %s:%s', host, port);
-  });
-};
+    server.listen(port, host)
+    logger.info('metrics-exporter listening at %s:%s', host, port)
+  })
+}
 
-exporter();
+exporter()
