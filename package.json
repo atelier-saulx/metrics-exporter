@@ -1,7 +1,7 @@
 {
-  "name": "pm2-metrics",
-  "version": "1.0.39",
-  "description": "Produces Metrics of Pm2 of running instances.little updated version of https://github.com/burningtree/pm2-prometheus-exporter, any PR is appriciated.",
+  "name": "@saulx/metrics-exporter",
+  "version": "2.0.0",
+  "description": "Produces Metrics of Pm2 of running instances.",
   "dependencies": {
     "@pm2/io": "^4.1.4",
     "pino": "^5.12.0",
@@ -10,47 +10,17 @@
     "prom-client": "^11.2.1"
   },
   "devDependencies": {
-    "ava": "^3.10.1",
-    "codecov": "^3.2.0",
-    "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-config-prettier": "latest",
-    "eslint-plugin-import": "^2.18.2",
-    "eslint-plugin-prettier": "latest",
-    "husky": "^2.2.0",
-    "lint-staged": "^9.2.2",
-    "prettier": "1.18.0",
-    "remark-cli": "^8.0.0",
-    "remark-license": "^5.0.0",
-    "remark-preset-github": "^0.0.13",
-    "xo": "latest"
+    "ava": "2.4.0",
+    "@saulx/eslint-config": "https://github.com/atelier-saulx/eslint-config",
+    "@saulx/prettier-config": "https://github.com/atelier-saulx/prettier-config",
+    "eslint": "^6.5.1",
+    "lint-staged": "^9.4.2",
+    "prettier": "^1.18.2"
   },
   "main": "exporter.js",
-  "remarkConfig": {
-    "plugins": [
-      "preset-github"
-    ]
-  },
-  "nyc": {
-    "reporter": [
-      "text-summary",
-      "lcov",
-      "html",
-      "text"
-    ],
-    "temp-directory": "./coverage",
-    "all": true,
-    "extension": [
-      ".js"
-    ],
-    "sourceMap": true,
-    "instrument": true,
-    "include": [
-      "exporter.js"
-    ]
-  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/saikatharryc/pm2-prometheus-exporter.git"
+    "url": "git@github.com:atelier-saulx/metrics-exporter.git"
   },
   "config": {
     "host": "0.0.0.0",
@@ -63,73 +33,41 @@
       "script": "exporter.js"
     }
   ],
-  "keywords": [
-    "pm2",
-    "prometheus",
-    "metrics",
-    "pmx"
-  ],
   "author": "Jan Stránský <jan.stransky@arnal.cz>",
   "contributor": [
+    {
+      "name": "Nuno Frade",
+      "email": "nuno@saulx.com",
+      "url": ""
+    },
     {
       "name": "Saikat Chakrabortty <@saikatharryc>",
       "email": "saikatchakrabortty2@gmail.com",
       "url": ""
     }
   ],
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/saikatharryc/pm2-prometheus-exporter/issues"
+  "license": "UNLICENSED",
+  "ava": {
+    "files": [
+      "test/**/*.js"
+    ],
+    "compileEnhancements": false
   },
-  "homepage": "https://github.com/saikatharryc/pm2-prometheus-exporter#readme",
+  "prettier": "@saulx/prettier-config",
+  "eslintConfig": {
+    "extends": "@saulx/eslint-config"
+  },
   "lint-staged": {
-    "*.{js,jsx,mjs,ts,tsx,css,less,scss,json,graphql}": [
-      "prettier --ignore-path ./.prettierignore",
+    "{js,json}": [
+      "prettier --write",
       "git add"
     ],
-    "*.md": [
-      "remark . -qfo",
+    "*.js": [
+      "eslint --fix",
       "git add"
     ]
   },
-  "xo": {
-    "ignores": [
-      "coverage/**"
-    ],
-    "extends": "prettier",
-    "plugins": [
-      "prettier"
-    ],
-    "parserOptions": {
-      "sourceType": "script"
-    },
-    "rules": {
-      "max-len": [
-        "error",
-        {
-          "code": 180,
-          "ignoreUrls": true
-        }
-      ],
-      "camelcase": 0,
-      "no-param-reassign": 0,
-      "comma-dangle": 1,
-      "arrow-parens": 0,
-      "implicit-arrow-linebreak": 0,
-      "object-curly-newline": 0,
-      "unicorn/catch-error-name": 0,
-      "lines-between-class-members": 0,
-      "eslint-comments/no-unused-disable": 0,
-      "eslint-disable/no-restricted-syntax": 0,
-      "eslint-disable/no-continue": 0,
-      "unicorn/prevent-abbreviations": 0,
-      "global-require": 0
-    },
-    "space": true
-  },
   "scripts": {
-    "lint": "xo --fix && remark . -qfo",
-    "precommit": "rm -rf coverage/*.* && lint-staged && npm test",
     "test": "npm run lint && xo"
   }
 }

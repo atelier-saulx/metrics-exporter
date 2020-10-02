@@ -1,13 +1,10 @@
-[![npm](https://img.shields.io/npm/v/pm2-metrics.svg)](https://npmjs.com/package/pm2-metrics) 
-[![NPM Downloads](https://img.shields.io/npm/dm/pm2-metrics.svg)](https://www.npmjs.com/package/pm2-metrics)
-[![NPM](https://nodei.co/npm/pm2-metrics.png?downloads=true)](https://nodei.co/npm/pm2-metrics/)
 
-# PM2 Metrics
+# Metrics Exporter
 
 #### Easy Install with PM2
 
 ```shell
-pm2 install pm2-metrics
+pm2 install @saulx/metrics-exporter
 ```
 
 #### Or Clone and run as a seperate application
@@ -15,7 +12,7 @@ pm2 install pm2-metrics
 ```shell
     $ git clone https://github.com/saikatharryc/pm2-prometheus-exporter.git
     $ npm install
-    $ pm2 start exporter.js --name pm2-metrics
+    $ pm2 start exporter.js --name metrics-exporter
 ```
 
 #### Open your browser
@@ -40,10 +37,4 @@ static_configs:
       - localhost:9209
 ```
 
-#### Grafana dashboard [#1 (comment)](https://github.com/saikatharryc/pm2-prometheus-exporter/issues/1#issuecomment-499551831)
-
-###### PR(s) & issue(s) are welcome
-
-###### \*change host name from `localhost` on basics where you are hosting
-
-###### Modified & Working Version from [pm2-prometheus-exporter by @burningtree](https://github.com/burningtree/pm2-prometheus-exporter)
+##### Based from (PM2 Metrics)[https://github.com/saikatharryc/pm2-prometheus-exporter].

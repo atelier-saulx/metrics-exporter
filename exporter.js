@@ -14,15 +14,16 @@ const map = [
   ['uptime', 'Process uptime'],
   ['instances', 'Process instances'],
   ['restarts', 'Process restarts'],
-  ['prev_restart_delay', 'Previous restart delay']
+  ['prev_restart_delay', 'Previous restart delay'],
 ];
 
-const pm2c = (cmd, args = []) => new Promise((resolve, reject) => {
-  pm2[cmd](args, (err, resp) => {
-    if (err) return reject(err);
-    return resolve(resp);
+const pm2c = (cmd, args = []) =>
+  new Promise((resolve, reject) => {
+    pm2[cmd](args, (err, resp) => {
+      if (err) return reject(err);
+      return resolve(resp);
+    });
   });
-});
 
 const metrics = () => {
   const pm = {};
@@ -32,7 +33,7 @@ const metrics = () => {
       name: `${prefix}_${m[0]}`,
       help: m[1],
       labelNames: labels,
-      registers: [registry]
+      registers: [registry],
     });
   });
   return pm2c('list')
@@ -44,7 +45,7 @@ const metrics = () => {
           name: p.name,
           instance: p.pm2_env.NODE_APP_INSTANCE,
           interpreter: p.pm2_env.exec_interpreter,
-          node_version: p.pm2_env.node_version
+          node_version: p.pm2_env.node_version,
         };
 
         const values = {
@@ -54,7 +55,7 @@ const metrics = () => {
           uptime: Math.round((Date.now() - p.pm2_env.pm_uptime) / 1000),
           instances: p.pm2_env.instances || 1,
           restarts: p.pm2_env.restart_time,
-          prev_restart_delay: p.pm2_env.prev_restart_delay
+          prev_restart_delay: p.pm2_env.prev_restart_delay,
         };
 
         const names = Object.keys(p.pm2_env.axm_monitor);
@@ -84,7 +85,7 @@ const metrics = () => {
                 name: metricName,
                 help: name,
                 labelNames: labels,
-                registers: [registry]
+                registers: [registry],
               });
             }
 
@@ -131,7 +132,7 @@ const exporter = () => {
     const host = conf.host || '0.0.0.0';
 
     server.listen(port, host);
-    logger.info('pm2-prometheus-exporter listening at %s:%s', host, port);
+    logger.info('metrics-exporter listening at %s:%s', host, port);
   });
 };
 
