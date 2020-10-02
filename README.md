@@ -37,4 +37,4 @@ static_configs:
       - localhost:9209
 ```
 
-##### Based from (PM2 Metrics)[https://github.com/saikatharryc/pm2-prometheus-exporter].
+##### Based from [ PM2 Metrics ]( https://github.com/saikatharryc/pm2-prometheus-exporter ).
